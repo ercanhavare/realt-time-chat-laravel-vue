@@ -1952,14 +1952,28 @@ __webpack_require__.r(__webpack_exports__);
   data: function data() {
     return {
       messages: [],
-      newMessage: ''
+      newMessage: '',
+      users: []
     };
   },
   created: function created() {
     var _this = this;
 
     this.fetchMessages();
-    Echo.join('chat').listen('MessageSent', function (event) {
+    Echo.join('chat') // trigger when the page is loads
+    // contains the information about
+    // all users are currently here
+    .here(function (user) {
+      _this.users = user;
+    }) // when the user has joined the channel
+    .joining(function (user) {
+      _this.users.push(user);
+    }) // when the user has left the channel
+    .leaving(function (user) {
+      _this.users = _this.users.filter(function (u) {
+        return u.id != user.id;
+      });
+    }).listen('MessageSent', function (event) {
       _this.messages.push(event.message);
     });
   },
@@ -47183,26 +47197,27 @@ var render = function() {
         _c("span", { staticClass: "text-muted" }, [_vm._v("user is typing...")])
       ]),
       _vm._v(" "),
-      _vm._m(0)
-    ])
-  ])
-}
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "col-4" }, [
-      _c("div", { staticClass: "card card-default" }, [
-        _c("div", { staticClass: "card-header" }, [_vm._v("Active Users")]),
-        _vm._v(" "),
-        _c("div", { staticClass: "card-body" }, [
-          _c("ul", [_c("li", { staticClass: "py-2" }, [_vm._v("Oktay")])])
+      _c("div", { staticClass: "col-4" }, [
+        _c("div", { staticClass: "card card-default" }, [
+          _c("div", { staticClass: "card-header" }, [_vm._v("Active Users")]),
+          _vm._v(" "),
+          _c("div", { staticClass: "card-body" }, [
+            _c(
+              "ul",
+              _vm._l(_vm.users, function(user, index) {
+                return _c("li", { key: index, staticClass: "py-2" }, [
+                  _vm._v(_vm._s(user.name))
+                ])
+              }),
+              0
+            )
+          ])
         ])
       ])
     ])
-  }
-]
+  ])
+}
+var staticRenderFns = []
 render._withStripped = true
 
 

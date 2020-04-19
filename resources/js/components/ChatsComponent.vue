@@ -28,7 +28,7 @@
                 <div class="card-header">Active Users</div>
                 <div class="card-body">
                     <ul>
-                        <li class="py-2">Oktay</li>
+                        <li class="py-2" v-for="(user, index) in users" :key="index">{{user.name}}</li>
                     </ul>
                 </div>
             </div>
@@ -44,12 +44,27 @@
             return {
                 messages: [],
                 newMessage:'',
+                users:[],
             }
         },
         created(){
             this.fetchMessages();
 
             Echo.join('chat')
+            // trigger when the page is loads
+            // contains the information about
+            // all users are currently here
+            .here(user => {
+                this.users = user;
+            })
+            // when the user has joined the channel
+            .joining(user => {
+                this.users.push(user);
+            })
+            // when the user has left the channel
+            .leaving(user=>{
+                this.users = this.users.filter(u => u.id != user.id);
+            })
             .listen('MessageSent',(event)=>{
                 this.messages.push(event.message);
             });
