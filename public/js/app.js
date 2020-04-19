@@ -1947,13 +1947,16 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['user'],
   data: function data() {
     return {
       messages: [],
       newMessage: '',
-      users: []
+      users: [],
+      activeUser: false,
+      typingTimer: false
     };
   },
   created: function created() {
@@ -1975,6 +1978,16 @@ __webpack_require__.r(__webpack_exports__);
       });
     }).listen('MessageSent', function (event) {
       _this.messages.push(event.message);
+    }).listenForWhisper('typing', function (user) {
+      _this.activeUser = user;
+
+      if (_this.typingTimer) {
+        clearTimeout(_this.typingTimer);
+      }
+
+      _this.typingTimer = setTimeout(function () {
+        _this.activeUser = false;
+      }, 3000);
     });
   },
   methods: {
@@ -1994,6 +2007,9 @@ __webpack_require__.r(__webpack_exports__);
         message: this.newMessage
       });
       this.newMessage = '';
+    },
+    sendTypingEvent: function sendTypingEvent() {
+      Echo.join('chat').whisper('typing', this.user);
     }
   }
 });
@@ -47270,6 +47286,7 @@ var render = function() {
             },
             domProps: { value: _vm.newMessage },
             on: {
+              keydown: _vm.sendTypingEvent,
               keyup: function($event) {
                 if (
                   !$event.type.indexOf("key") &&
@@ -47289,7 +47306,11 @@ var render = function() {
           })
         ]),
         _vm._v(" "),
-        _c("span", { staticClass: "text-muted" }, [_vm._v("user is typing...")])
+        _vm.activeUser
+          ? _c("span", { staticClass: "text-muted" }, [
+              _vm._v(_vm._s(_vm.activeUser.name) + " is typing...")
+            ])
+          : _vm._e()
       ]),
       _vm._v(" "),
       _c("div", { staticClass: "col-4" }, [
